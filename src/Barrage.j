@@ -1,5 +1,5 @@
 //! zinc
-library BarrageBase requires TimerUtils, Vector, ARGB, Table, Tool{
+library BarrageBase requires TimerUtils,ARGB, Table, Tool{
 	/*
 		Barrage
 			BarrageUtils
