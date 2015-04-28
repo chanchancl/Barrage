@@ -1,5 +1,5 @@
 //! zinc
-library BarrageBase requires TimerUtils,ARGB, Table, Tool{
+library BarrageBase requires TimerUtils,Table, Tool{
 	/*
 		Barrage
 			BarrageUtils
@@ -12,8 +12,10 @@ library BarrageBase requires TimerUtils,ARGB, Table, Tool{
 	constant location BarrageStartPoint = Location(-776.3,1287.4);
 	constant real UPDATA_TICK = 0.03;
 
+
 	interface infBarrage{
 		real x,y, vx,vy;
+		//real speed,angel; //use speed and angel to make unit move
 		real f;
 		unit u;
 		boolean enable;
@@ -40,14 +42,14 @@ library BarrageBase requires TimerUtils,ARGB, Table, Tool{
 			return temp;
 		}
 		
-		public method UpData() -> boolean {
+		public method UpData(real TimeHavePass) -> boolean {
 			this.Move();
 			
 			if(!IsEnable())
 				return false;
 				
 				
-			if( RectContainsUnit(GameRect, this.u) == true){
+			if( RectContainsUnit(GameRect, this.u) == false){
 				print("BarrageId: " + I2S(this) + " is out of rect,will be dead.");
 				this.SetEnable(false);
 				this.alive = false;
@@ -73,116 +75,143 @@ library BarrageBase requires TimerUtils,ARGB, Table, Tool{
 			SetUnitFacing(u,f);
 		}
 	}
-	
-	integer TempBehaviorIndex = 0;
-	public function TempBehavior(Barrage b)
+
+	typedef BehaviorFunc extends function (Barrage);
+
+	struct Behavior
 	{
-		real a;
-		real dax,day,l;
-		integer angel=90;
-		
-		TempBehaviorIndex+=1;
-		/*if(TempBehaviorIndex>=30)
+		real StartTime;
+		real EndTime;
+		real CreateTime;
+		boolean AbsoluteTime;
+		BehaviorFunc FuncList[];
+		integer FuncCount;
+
+
+		static method create(real StartTime,real EndTime, boolean AbsoluteTime,real CreateTime) ->thistype{
+			thistype temp = thistype.allocate();
+			temp.StartTime = StartTime;
+			temp.EndTime = EndTime;
+			temp.AbsoluteTime = AbsoluteTime;
+			temp.CreateTime = CreateTime;
+			temp.FuncCount = 0;
+
+			return temp;
+		}
+
+		method DoBehavior(Barrage b)
 		{
-			angel = -angel;
-			TempBehaviorIndex=0;
-		}*/
-		
-		a=300;
-		l = SquareRoot(b.vx*b.vx + b.vy*b.vy);
+			integer i;
+			if (!b.IsAlive())
+				return;
+			for (int i = 0; i < FuncCount; i+=1)
+				FuncList[i].evaluate(b);
+		}
 
-		dax = a * UPDATA_TICK * ((b.vx*CosBJ(angel) - b.vy*SinBJ(angel))/l);
-		day = a * UPDATA_TICK * ((b.vx*SinBJ(angel) + b.vy*CosBJ(angel))/l);
+		method AddBehaviorFunc(BehaviorFunc fun){
+			FuncList[FuncCount] = fun;
+			FuncCount+=1;
+		}
 
-		b.vx += dax;
-		b.vy += day;
-		
+		method Suit(real TimeHavePass) -> boolean{
+			if(AbsoluteTime){
+				if (TimeHavePass >= StartTime && TimeHavePass <= EndTime)
+					return true;
+				else
+					return false;
+			}
+			else{
+				if ((TimeHavePass-CreateTime) >= StartTime && (TimeHavePass-CreateTime) <= EndTime )
+					return true
+				else
+					return false;
+			}
+
+
+		}
 	}
 	
+
 	struct BarrageUtils{
-		static  integer MAX_BARRAGES = 10000;
-		integer BarrageNum;
-		static Table BarrageTable;
-		
-		static method execute(){
-			integer i;
+		static  integer BARRAGE_ROOT  = 10000000;
+		static  integer BEHAVIOU_ROOT = 1000;
+		integer BarrageCount;
+		integer BehaviorCount;
+
+		static Table DataTable;
+
+
+		method UpData(real TimeHavePass)
+		{
+			integer i,k;
 			Barrage b;
-			BarrageUtils bu = GetTimerData(GetExpiredTimer());
+			Behavior be;
 			
-			//print("BarrageUtils.execute()" + I2S(bu.BarrageNum));
 			
-			for(i=0; i< bu.BarrageNum; i+=1){
-				b = bu.GetBarrage(i);
+			for(i=0; i< this.BarrageCount; i+=1){
+				b = this.GetBarrage(i);
 				if(b.IsAlive()){
-					b.UpData();
-					TempBehavior(b);
+					b.UpData(TimeHavePass);
+					// TODO Behavior
+					for (k = 0; k < BehaviorCount; k+=1) {
+						be = GetBehavior(k);
+						if(be.Suit(TimeHavePass))
+							be.DoBehavior(b);
+					}
 				}
 			}
 		}
 		
-		method Append(Barrage added){
-			BarrageTable[this*MAX_BARRAGES + BarrageNum] =  added;
-			BarrageNum+=1;
+		method AddBarrage(Barrage added){
+			DataTable[this*BARRAGE_ROOT + BarrageCount] =  added;
+			BarrageCount+=1;
 		}
 		method GetBarrage(integer id) -> Barrage{
-			return BarrageTable[this*MAX_BARRAGES + id];
+			return DataTable[this*BARRAGE_ROOT + id];
 		}
-		
-		
-		static integer index =1;
-		static method actions(){
-			BarrageUtils bu = GetTimerData(GetExpiredTimer());
-			real TimeHavePass = I2R(index) * UPDATA_TICK;
-			real speed = 300;
-			real vx,vy;
-			integer utype;
-			Barrage b;
-			
-			if(bu.BarrageNum >=360)
-			{
-				ReleaseTimer(GetExpiredTimer());
-				return;
-			}
-			index+=1;
-			utype = 'e000';
-			if(ModuloInteger(index,3) == 0){
-				utype = 'e001';
-			}
-			if(ModuloInteger(index,4) == 0){
-				return;
-			}
-			
-			//print("actions +  " + I2S(index));
 
-			vx = speed * CosBJ(I2R(bu.BarrageNum*3));
-			vy = speed * SinBJ(I2R(bu.BarrageNum*3));
-			//print(I2S(bu.BarrageNum*2));
-			b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint),vx,vy,utype,0);
-			bu.Append(b);
-			
+		method AddBehavior(Behavior added){
+			DataTable[this*BEHAVIOU_ROOT + BehaviorCount] = added;
+			BehaviorCount+=1;
+		}
+
+		method GetBehavior(integer id) -> Behavior{
+			return DataTable[this*BEHAVIOU_ROOT + id];
 		}
 		
-		static method onInit()
-		{	
-			BarrageUtils bu ;
-			timer t;
-			BarrageTable = Table.create();
-			
-			bu = BarrageUtils.create();
-			t = NewTimer();
-			SetTimerData(t,bu);
-			TimerStart(t,UPDATA_TICK,true,function BarrageUtils.actions);
-			t = null;
-			
-			t= NewTimer();
-			SetTimerData(t,bu);
-			TimerStart(t,UPDATA_TICK,true,function BarrageUtils.execute);
-			t=null;
+		static method onInit(){
+			DataTable = Table.create();
+			BarrageCount = 0;
+			BehaviorCount = 0;
 		}
 	}
 	
 	struct BarrageManage {
-		
+		BarrageUtils UtilsList[];
+		integer BarrageUtilsCount;
+		integer UpdataCount;
+
+
+		method UpData(){
+			integer i;
+			for(i=0;i<BarrageUtilsNum;i++){
+				if (bu[i].IsAlive()){
+					bu[i].UpData(I2R(UpdataCount)*UPDATA_TICK);
+				}
+			}
+		}
+
+		method AddBarrageUtils(BarrageUtils bu)
+		{
+			UtilsList[BarrageUtilsCount] = bu;
+			BarrageUtilsCount += 1;
+		}
+
+		static method onInit()
+		{
+			BarrageUtilsCount = 0;
+			UpdataCount = 0;
+		}
 		
 	}
 	
