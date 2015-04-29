@@ -7,7 +7,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 		BarrageManager
 		
 	*/
-public{
+
 	public rect GameRect = Rect(-1344,-192,-160,1472);
 	public constant location BarrageStartPoint = Location(-776.3,1287.4);
 	public constant real UPDATA_TICK = 0.03;
@@ -229,34 +229,8 @@ public{
 			TimerStart(t,UPDATA_TICK,true,function thistype.UpData);
 			t=null;
 		}
-
-		static method onInit()
-		{
-		}
 		
 	}
-	
-	/*function ab()
-	{
-		Barrage b = GetTimerData(GetExpiredTimer());
-		b.UpData();
-		TempBehavior(b);
-	}
-
-	function onInit(){
-		Barrage b;
-		real vx,vy;
-		timer t;		
-		
-		vx=135.0;
-		vy=-200.0;
-		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint),vx,vy,'e000',0);
-		t = NewTimer();
-		SetTimerData(t,b);
-		TimerStart(t,UPDATA_TICK,true,function ab);
-		t=null;
-	}*/
-}
 }
 
 //! endzinc
