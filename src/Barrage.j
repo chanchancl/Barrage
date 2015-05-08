@@ -113,8 +113,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 	type BehaviorFunc extends function(Barrage);
 
-	public struct Behavior
-	{
+	public struct Behavior{
 		real StartTime;
 		real EndTime;
 		real CreateTime;
@@ -134,8 +133,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			return temp;
 		}
 
-		method DoBehavior(Barrage b)
-		{
+		method DoBehavior(Barrage b){
 			integer i;
 			DoBehaviorCount+=1;
 
@@ -164,8 +162,6 @@ library BarrageBase requires TimerUtils,Table, Tool{
 					
 				else{return false;}
 			}
-
-
 		}
 	}
 	
@@ -178,8 +174,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 		static Table DataTable;
 
-		method UpData(real TimeHavePass)
-		{
+		method UpData(real TimeHavePass){
 			integer i,k;
 			Barrage b;
 			Behavior be;
@@ -193,8 +188,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 				if(b.IsAlive()){
 					//print("Barrage" + I2S(b) + "is alive");
 					b.UpData(TimeHavePass);
-					if (b.IsAlive())
-					{
+					if (b.IsAlive()){
 						// TODO Behavior
 						for (k = 0; k < BehaviorCount; k+=1) {
 							be = GetBehavior(k);
@@ -205,13 +199,12 @@ library BarrageBase requires TimerUtils,Table, Tool{
 						}
 							
 					}
-					else
-					{
+					else{
 						SetBarrage(i,GetBarrage(BarrageCount-1));
 						//SetBarrage(BarrageCount, -1);
 						BarrageCount-=1;
 						b.destroy();
-						i-=1;
+						i-=1;//UpData the replace barrage... -_-
 					}
 				}
 			}
@@ -258,7 +251,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			DataTable = Table.create();
 		}
 	}
-	
+
+	real lasttime=0;
 	public struct BarrageManager {
 		BarrageUtils UtilsList[1000];
 		public integer BarrageUtilsCount;
@@ -266,9 +260,11 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 
 		static method UpData(){
-			integer i;
+			integer i,count;
+			real difftime;
 			BarrageUtils bu;
 			BarrageManager this = GetTimerData(GetExpiredTimer());
+			count = 0;
 
 			ManagerUpdataCount+=1;
 			//print("Manager.UpData");
@@ -277,17 +273,26 @@ library BarrageBase requires TimerUtils,Table, Tool{
 				if (bu.IsAlive()){
 					//print("Manager.Utils is alive");
 					bu.UpData(I2R(UpdataCount)*UPDATA_TICK);
+					count += bu.BarrageCount;
 					//print("BarrageCount : " + I2S(bu.BarrageCount) );
 				}
 			}
 
-			if (I2R(UpdataCount)*UPDATA_TICK > 1.0)
-			{
+			if (I2R(UpdataCount)*UPDATA_TICK > 1.0){
+				difftime = I2R(UpdataCount)*UPDATA_TICK - lasttime;
+				if(difftime >= 1.0 ){
+					lasttime = I2R(UpdataCount)*UPDATA_TICK;
+					
+					BarrageUpdataCount=0;
+					DoBehaviorCount=0;
+
+					/*print("Utils.Update called : " + R2S(I2R(UtilsUpdataCount)/(I2R(UpdataCount)*UPDATA_TICK)) + "  times per second."  );
+					print("Manager.Update called : " + R2S(I2R(ManagerUpdataCount)/(I2R(UpdataCount)*UPDATA_TICK)) + "  times per second."  );*/
+				}
 				print("---------------------------------------------------------------------");
-				print("Barrage.Update called : " + R2S(I2R(BarrageUpdataCount)/(I2R(UpdataCount)*UPDATA_TICK)) + "  times per second."  );
-				print("Behavior.DoBehavior called : " + R2S(I2R(DoBehaviorCount)/(I2R(UpdataCount)*UPDATA_TICK)) + "  times per second."  );
-				print("Utils.Update called : " + R2S(I2R(UtilsUpdataCount)/(I2R(UpdataCount)*UPDATA_TICK)) + "  times per second."  );
-				print("Manager.Update called : " + R2S(I2R(ManagerUpdataCount)/(I2R(UpdataCount)*UPDATA_TICK)) + "  times per second."  );
+				print("Barrage.Update called : " + R2S(I2R(BarrageUpdataCount)/difftime) + "  times per second."  );
+				print("Behavior.DoBehavior called : " + R2S(I2R(DoBehaviorCount)/difftime) + "  times per second."  );
+				print("BarrageUtils.BarrageCount : " + I2S(count) + "  in total.");
 			}
 			
 
@@ -295,14 +300,12 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			UpdataCount+=1;
 		}
 
-		method AddBarrageUtils(BarrageUtils bu)
-		{
+		method AddBarrageUtils(BarrageUtils bu){
 			UtilsList[BarrageUtilsCount] = bu;
 			BarrageUtilsCount += 1;
 		}
 
-		method Start()
-		{
+		method Start(){
 			timer t;
 			t = NewTimer();
 			SetTimerData(t,this);
@@ -314,6 +317,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 	function onInit(){
 		GameRect = Rect(-1344,-192,-160,1472);
+		//GameRect = GetPlayableMapRect();
 	}
 }
 

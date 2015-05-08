@@ -3,7 +3,7 @@
 //! zinc
 library BehaviorDemo requires BarrageBase{
 
-	real BehaviorFuncAddSpeed = 700;
+	real BehaviorFuncAddSpeed = 50;
 	public function AddSpeed(Barrage b)
 	{
 		real len = SquareRoot(b.vx*b.vx+b.vy*b.vy);
@@ -15,13 +15,16 @@ library BehaviorDemo requires BarrageBase{
 
 	real BehaviorFuncRotateAngel = 90;
 	//Positive values for the counter clockwise rotation,旋转速度方向
+	real BehaviorFuncRotateSpeed = 500;
 	public function Rotate(Barrage b)
 	{
-		real x,y;
-		x = b.vx*CosBJ(BehaviorFuncRotateAngel) - b.vy*SinBJ(BehaviorFuncRotateAngel);
-		y = b.vx*SinBJ(BehaviorFuncRotateAngel) + b.vy*CosBJ(BehaviorFuncRotateAngel);
-		b.vx = x;
-		b.vy = y;
+		real dvx,dvy;
+		real len;
+		len = SquareRoot(b.vx*b.vx + b.vy*b.vy);
+		dvx = BehaviorFuncRotateSpeed * UPDATA_TICK * ((b.vx*CosBJ(BehaviorFuncRotateAngel) - b.vy*SinBJ(BehaviorFuncRotateAngel))/len);
+		dvy = BehaviorFuncRotateSpeed * UPDATA_TICK * ((b.vx*SinBJ(BehaviorFuncRotateAngel) + b.vy*CosBJ(BehaviorFuncRotateAngel))/len);
+		b.vx += dvx;
+		b.vy += dvy;
 	}
 }
 
@@ -37,7 +40,7 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		Barrage b;
 		BarrageUtils bu = GetTimerData(GetExpiredTimer());
 
-		if (bu.BarrageCount >= 2000)
+		if (bu.BarrageCount >= 300)
 		{
 			ReleaseTimer(GetExpiredTimer());
 			return;
@@ -56,7 +59,7 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		//print("                    CreateBarrage:" + I2S(b));
 		bu.AddBarrage(b);
 
-		vx = speed * CosBJ(I2R(OnTimerIndex*5));
+		/*vx = speed * CosBJ(I2R(OnTimerIndex*5));
 		vy = speed * SinBJ(I2R(OnTimerIndex*5));
 		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint)-100,vx,vy,'e001',0);
 		//print("                    CreateBarrage:" + I2S(b));
@@ -66,7 +69,7 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		vy = speed * SinBJ(I2R(OnTimerIndex*7));
 		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint)-200,vx,vy,'e000',0);
 		//print("                    CreateBarrage:" + I2S(b));
-		bu.AddBarrage(b);
+		bu.AddBarrage(b);*/
 
 		vx = speed * CosBJ(I2R(OnTimerIndex*10));
 		vy = speed * SinBJ(I2R(OnTimerIndex*10));
@@ -74,8 +77,8 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		//print("                    CreateBarrage:" + I2S(b));
 		bu.AddBarrage(b);
 
-		vx = speed * CosBJ(I2R(OnTimerIndex*15));
-		vy = speed * SinBJ(I2R(OnTimerIndex*15));
+		vx = speed * CosBJ(I2R(OnTimerIndex*-15));
+		vy = speed * SinBJ(I2R(OnTimerIndex*-15));
 		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint)-400,vx,vy,'e000',0);
 		//print("                    CreateBarrage:" + I2S(b));
 		bu.AddBarrage(b);
@@ -93,16 +96,20 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 	}
 
 	function onInit() {	
-		Behavior BDemo;
+		Behavior b1,b2;
 		BarrageUtils bu;
 		BarrageManager bm;
 
-		BDemo = Behavior.create(0,9999999999,true,0);
-		BDemo.AddBehaviorFunc(AddSpeed);
-		//BDemo.AddBehaviorFunc(Rotate);
+		b1 = Behavior.create(0,999999,true,0);
+		b1.AddBehaviorFunc(AddSpeed);
+		//b1.AddBehaviorFunc(Rotate);
+
+		/*b2 = Behavior.create(5,99999999,true,0);
+		b2.AddBehaviorFunc(Rotate);*/
 
 		bu = BarrageUtils.create();
-		bu.AddBehavior(BDemo);
+		bu.AddBehavior(b1);
+		//bu.AddBehavior(b2);
 		tCreateBarrage(bu);
 
 		bm = BarrageManager.create();
