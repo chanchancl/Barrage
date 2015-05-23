@@ -3,7 +3,7 @@
 //! zinc
 library BehaviorDemo requires BarrageBase{
 
-	real BehaviorFuncAddSpeed = 50;
+	real BehaviorFuncAddSpeed = 10;
 	public function AddSpeed(Barrage b)
 	{
 		real len = SquareRoot(b.vx*b.vx+b.vy*b.vy);
@@ -59,7 +59,7 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		//print("                    CreateBarrage:" + I2S(b));
 		bu.AddBarrage(b);
 
-		/*vx = speed * CosBJ(I2R(OnTimerIndex*5));
+		vx = speed * CosBJ(I2R(OnTimerIndex*5));
 		vy = speed * SinBJ(I2R(OnTimerIndex*5));
 		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint)-100,vx,vy,'e001',0);
 		//print("                    CreateBarrage:" + I2S(b));
@@ -69,9 +69,9 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		vy = speed * SinBJ(I2R(OnTimerIndex*7));
 		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint)-200,vx,vy,'e000',0);
 		//print("                    CreateBarrage:" + I2S(b));
-		bu.AddBarrage(b);*/
+		bu.AddBarrage(b);
 
-		vx = speed * CosBJ(I2R(OnTimerIndex*10));
+		/*vx = speed * CosBJ(I2R(OnTimerIndex*10));
 		vy = speed * SinBJ(I2R(OnTimerIndex*10));
 		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint)-300,vx,vy,'e001',0);
 		//print("                    CreateBarrage:" + I2S(b));
@@ -81,7 +81,7 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		vy = speed * SinBJ(I2R(OnTimerIndex*-15));
 		b = Barrage.create(GetLocationX(BarrageStartPoint),GetLocationY(BarrageStartPoint)-400,vx,vy,'e000',0);
 		//print("                    CreateBarrage:" + I2S(b));
-		bu.AddBarrage(b);
+		bu.AddBarrage(b);*/
 	}
 
 
@@ -100,16 +100,16 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		BarrageUtils bu;
 		BarrageManager bm;
 
-		b1 = Behavior.create(0,999999,true,0);
+		b1 = Behavior.create(0,9999,true);
 		b1.AddBehaviorFunc(AddSpeed);
 		//b1.AddBehaviorFunc(Rotate);
 
-		/*b2 = Behavior.create(5,99999999,true,0);
+		/*b2 = Behavior.create(3,9999,false);
 		b2.AddBehaviorFunc(Rotate);*/
 
 		bu = BarrageUtils.create();
 		bu.AddBehavior(b1);
-		//bu.AddBehavior(b2);
+		bu.AddBehavior(b2);
 		tCreateBarrage(bu);
 
 		bm = BarrageManager.create();

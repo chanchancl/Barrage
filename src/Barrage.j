@@ -8,10 +8,12 @@ library BarrageBase requires TimerUtils,Table, Tool{
 		
 	*/
 
-	public rect GameRect ;
+	// Important parameter
+	public rect GameRect ; // init in the BarrageBase.onInit()
 	public constant location BarrageStartPoint = Location(-776.3,1287.4);
 	public constant real UPDATA_TICK = 0.03;
 
+	// Debug Information
 	public integer BarrageUpdataCount=0;
 	public integer DoBehaviorCount=0;
 	public integer UtilsUpdataCount=0;
@@ -25,8 +27,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 		unit u;
 		boolean enable;
 		boolean alive;
-		
-		
+
+		real CreateTime;
 	}
 
 	public struct Barrage extends infBarrage{
@@ -43,6 +45,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			//默认显示且存活
 			temp.enable = true;
 			temp.alive = true;
+			temp.CreateTime = GetNowTime(); //Defined in Library Tool
 			
 			return temp;
 		}
@@ -116,18 +119,17 @@ library BarrageBase requires TimerUtils,Table, Tool{
 	public struct Behavior{
 		real StartTime;
 		real EndTime;
-		real CreateTime;
+
 		boolean AbsoluteTime;
 		BehaviorFunc FuncList[1000];
 		integer FuncCount;
 
 
-		static method create(real StartTime,real EndTime, boolean AbsoluteTime,real CreateTime) ->thistype{
+		static method create(real StartTime,real EndTime, boolean AbsoluteTime) ->thistype{
 			thistype temp = thistype.allocate();
 			temp.StartTime = StartTime;
 			temp.EndTime = EndTime;
 			temp.AbsoluteTime = AbsoluteTime;
-			temp.CreateTime = CreateTime;
 			temp.FuncCount = 0;
 
 			return temp;
@@ -135,6 +137,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 		method DoBehavior(Barrage b){
 			integer i;
+
+			//Debug Information
 			DoBehaviorCount+=1;
 
 			for (i = 0; i < FuncCount; i+=1)
@@ -146,7 +150,14 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			FuncCount+=1;
 		}
 
-		public method Suit(real TimeHavePass) -> boolean{
+		//
+		static integer SM_DoAfeterBarrageCreate = 1;
+		static integer SM_DoAfterUtilCreate = 2;
+
+		static integer TM_AbsoluteTime = 1;
+		static integer TM_RelativeTime = 2;
+
+		public method Suit(real TimeHavePass, Barrage b) -> boolean{
 
 
 			if(AbsoluteTime){
@@ -156,7 +167,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 				else { return false; }
 			}
 			else{
-				if ((TimeHavePass-CreateTime) >= StartTime && (TimeHavePass-CreateTime) <= EndTime ){
+				if ((TimeHavePass-b.CreateTime) >= StartTime && (TimeHavePass-b.CreateTime) <= EndTime ){
 					return true;
 				}
 					
@@ -179,6 +190,7 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			Barrage b;
 			Behavior be;
 
+			// Debug Infomation
 			UtilsUpdataCount+=1;
 			
 			//print("BarrageUtils.UpData");
@@ -187,12 +199,11 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 				if(b.IsAlive()){
 					//print("Barrage" + I2S(b) + "is alive");
-					b.UpData(TimeHavePass);
-					if (b.IsAlive()){
+					if (b.UpData(TimeHavePass)){
 						// TODO Behavior
 						for (k = 0; k < BehaviorCount; k+=1) {
 							be = GetBehavior(k);
-							if(be.Suit(TimeHavePass)){
+							if( be.Suit(TimeHavePass,b) ){
 								//print( "i =  " + I2S(i) +"  Behavior" + I2S(be) + "is suit for Barrage : " + I2S(b));
 								be.DoBehavior(b);
 							}
@@ -266,13 +277,15 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			BarrageManager this = GetTimerData(GetExpiredTimer());
 			count = 0;
 
+			// Debug Information
 			ManagerUpdataCount+=1;
 			//print("Manager.UpData");
+
 			for(i=0;i<BarrageUtilsCount;i+=1){
 				bu = this.UtilsList[i];
-				if (bu.IsAlive()){
+				if (bu.IsAlive()){  // may be it is useless
 					//print("Manager.Utils is alive");
-					bu.UpData(I2R(UpdataCount)*UPDATA_TICK);
+					bu.UpData(GetNowTime());
 					count += bu.BarrageCount;
 					//print("BarrageCount : " + I2S(bu.BarrageCount) );
 				}
@@ -316,8 +329,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 	}
 
 	function onInit(){
-		GameRect = Rect(-1344,-192,-160,1472);
-		//GameRect = GetPlayableMapRect();
+		//GameRect = Rect(-1344,-192,-160,1472);
+		GameRect = GetPlayableMapRect();
 	}
 }
 
