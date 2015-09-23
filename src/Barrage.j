@@ -1,5 +1,6 @@
 //! zinc
-library BarrageBase requires TimerUtils,Table, Tool{
+library BarrageBase requires TimerUtils,Table, Tool
+{
 	/*
 		Barrage
 			BarrageUtils
@@ -20,7 +21,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 	public integer ManagerUpdataCount=0;
 
 
-	interface infBarrage{
+	interface infBarrage
+	{
 		real x,y, vx,vy;
 		//real speed,angel; //use speed and angel to make unit move
 		real f;
@@ -31,8 +33,10 @@ library BarrageBase requires TimerUtils,Table, Tool{
 		real CreateTime;
 	}
 
-	public struct Barrage extends infBarrage{
-		static method create(real x, real y, real vx, real vy, integer utype, real face) -> thistype{
+	public struct Barrage extends infBarrage
+	{
+		static method create(real x, real y, real vx, real vy, integer utype, real face) -> thistype
+		{
 			thistype temp = thistype.allocate();
 			temp.x = x;
 			temp.y = y;
@@ -50,7 +54,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			return temp;
 		}
 		
-		public method UpData(real TimeHavePass) -> boolean {
+		public method UpData(real TimeHavePass) -> boolean 
+		{
 			BarrageUpdataCount+=1;
 			this.Move();
 			
@@ -67,7 +72,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			//print("GameRect.GetRectMaxY: " + R2S(GetRectMaxY(GameRect)));
 				
 				
-			if( RectContainsUnit(GameRect, this.u) == false){
+			if( RectContainsUnit(GameRect, this.u) == false)
+			{
 
 				/*print("BarrageId: " + I2S(this) + " is out of rect,will be dead.");
 				print("Barrage.u.x:" + R2S(GetUnitX(this.u)));
@@ -93,12 +99,14 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			this.alive = IsUnitAliveBJ(this.u);
 			return this.alive;
 		}
-		method SetEnable(boolean b){
+		method SetEnable(boolean b)
+		{
 			ShowUnit(this.u, b);
 			this.enable = b;
 		}
 		
-		method Move(){
+		method Move()
+		{
 			x += vx * UPDATA_TICK;
 			y += vy * UPDATA_TICK;
 			
@@ -107,7 +115,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			SetUnitFacing(u,f);
 		}
 
-		method destroy(){
+		method destroy()
+		{
 			RemoveUnit(this.u);
 			this.u=null;
 			this.deallocate();
@@ -116,7 +125,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 	type BehaviorFunc extends function(Barrage);
 
-	public struct Behavior{
+	public struct Behavior
+	{
 		real StartTime;
 		real EndTime;
 
@@ -125,7 +135,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 		integer FuncCount;
 
 
-		static method create(real StartTime,real EndTime, boolean AbsoluteTime) ->thistype{
+		static method create(real StartTime,real EndTime, boolean AbsoluteTime) ->thistype
+		{
 			thistype temp = thistype.allocate();
 			temp.StartTime = StartTime;
 			temp.EndTime = EndTime;
@@ -135,7 +146,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			return temp;
 		}
 
-		method DoBehavior(Barrage b){
+		method DoBehavior(Barrage b)
+		{
 			integer i;
 
 			//Debug Information
@@ -145,7 +157,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 				FuncList[i].evaluate(b);
 		}
 
-		public method AddBehaviorFunc(BehaviorFunc fun){
+		public method AddBehaviorFunc(BehaviorFunc fun)
+		{
 			FuncList[FuncCount] = fun;
 			FuncCount+=1;
 		}
@@ -157,17 +170,21 @@ library BarrageBase requires TimerUtils,Table, Tool{
 		static integer TM_AbsoluteTime = 1;
 		static integer TM_RelativeTime = 2;
 
-		public method Suit(real TimeHavePass, Barrage b) -> boolean{
+		public method Suit(real TimeHavePass, Barrage b) -> boolean
+		{
 
 
-			if(AbsoluteTime){
-				if (TimeHavePass >= StartTime && TimeHavePass <= EndTime){
+			if(AbsoluteTime)
+			{
+				if (TimeHavePass >= StartTime && TimeHavePass <= EndTime)
+				{
 					return true;
 				}
 				else { return false; }
 			}
 			else{
-				if ((TimeHavePass-b.CreateTime) >= StartTime && (TimeHavePass-b.CreateTime) <= EndTime ){
+				if ((TimeHavePass-b.CreateTime) >= StartTime && (TimeHavePass-b.CreateTime) <= EndTime )
+				{
 					return true;
 				}
 					
@@ -177,7 +194,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 	}
 	
 
-	public struct BarrageUtils{
+	public struct BarrageUtils
+	{
 		static  integer BARRAGE_ROOT  = 10000000;
 		static  integer BEHAVIOU_ROOT = 1000;
 		integer BarrageCount;
@@ -185,7 +203,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 
 		static Table DataTable;
 
-		method UpData(real TimeHavePass){
+		method UpData(real TimeHavePass)
+		{
 			integer i,k;
 			Barrage b;
 			Behavior be;
@@ -194,16 +213,21 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			UtilsUpdataCount+=1;
 			
 			//print("BarrageUtils.UpData");
-			for(i=0; i< this.BarrageCount; i+=1){
+			for(i=0; i< this.BarrageCount; i+=1)
+			{
 				b = this.GetBarrage(i);
 
-				if(b.IsAlive()){
+				if(b.IsAlive())
+				{
 					//print("Barrage" + I2S(b) + "is alive");
-					if (b.UpData(TimeHavePass)){
+					if (b.UpData(TimeHavePass))
+					{
 						// TODO Behavior
-						for (k = 0; k < BehaviorCount; k+=1) {
+						for (k = 0; k < BehaviorCount; k+=1) 
+						{
 							be = GetBehavior(k);
-							if( be.Suit(TimeHavePass,b) ){
+							if( be.Suit(TimeHavePass,b) )
+							{
 								//print( "i =  " + I2S(i) +"  Behavior" + I2S(be) + "is suit for Barrage : " + I2S(b));
 								be.DoBehavior(b);
 							}
@@ -221,7 +245,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			}
 		}
 
-		method IsAlive() ->boolean {
+		method IsAlive() ->boolean
+		{
 			integer i;
 			for (i = 0; i < BarrageCount; i+=1)
 			{
@@ -233,24 +258,29 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			return false;
 		}
 		
-		method AddBarrage(Barrage added){
+		method AddBarrage(Barrage added)
+		{
 			DataTable[this*BARRAGE_ROOT + BarrageCount] =  added;
 			BarrageCount+=1;
 		}
-		method GetBarrage(integer id) -> Barrage{
+		method GetBarrage(integer id) -> Barrage
+		{
 			return DataTable[this*BARRAGE_ROOT + id];
 		}
 
-		method SetBarrage(integer id,Barrage b){
+		method SetBarrage(integer id,Barrage b)
+		{
 			DataTable[this*BARRAGE_ROOT + id] = b;
 		}
 
-		method AddBehavior(Behavior added){
+		method AddBehavior(Behavior added)
+		{
 			DataTable[this*BEHAVIOU_ROOT + BehaviorCount] = added;
 			BehaviorCount+=1;
 		}
 
-		method GetBehavior(integer id) -> Behavior{
+		method GetBehavior(integer id) -> Behavior
+		{
 			return DataTable[this*BEHAVIOU_ROOT + id];
 		}
 
@@ -258,19 +288,22 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			DataTable[this*BEHAVIOU_ROOT + id] = b;
 		}
 		
-		static method onInit(){
+		static method onInit()
+		{
 			DataTable = Table.create();
 		}
 	}
 
 	real lasttime=0;
-	public struct BarrageManager {
+	public struct BarrageManager 
+	{
 		BarrageUtils UtilsList[1000];
 		public integer BarrageUtilsCount;
 		public integer UpdataCount;
 
 
-		static method UpData(){
+		static method UpData()
+		{
 			integer i,count;
 			real difftime;
 			BarrageUtils bu;
@@ -281,9 +314,11 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			ManagerUpdataCount+=1;
 			//print("Manager.UpData");
 
-			for(i=0;i<BarrageUtilsCount;i+=1){
+			for(i=0;i<BarrageUtilsCount;i+=1)
+			{
 				bu = this.UtilsList[i];
-				if (bu.IsAlive()){  // may be it is useless
+				if (bu.IsAlive())
+				{  // may be it is useless
 					//print("Manager.Utils is alive");
 					bu.UpData(GetNowTime());
 					count += bu.BarrageCount;
@@ -291,9 +326,11 @@ library BarrageBase requires TimerUtils,Table, Tool{
 				}
 			}
 
-			if (I2R(UpdataCount)*UPDATA_TICK > 1.0){
+			if (I2R(UpdataCount)*UPDATA_TICK > 1.0)
+			{
 				difftime = I2R(UpdataCount)*UPDATA_TICK - lasttime;
-				if(difftime >= 1.0 ){
+				if(difftime >= 1.0 )
+				{
 					lasttime = I2R(UpdataCount)*UPDATA_TICK;
 					
 					BarrageUpdataCount=0;
@@ -313,12 +350,14 @@ library BarrageBase requires TimerUtils,Table, Tool{
 			UpdataCount+=1;
 		}
 
-		method AddBarrageUtils(BarrageUtils bu){
+		method AddBarrageUtils(BarrageUtils bu)
+		{
 			UtilsList[BarrageUtilsCount] = bu;
 			BarrageUtilsCount += 1;
 		}
 
-		method Start(){
+		method Start()
+		{
 			timer t;
 			t = NewTimer();
 			SetTimerData(t,this);
@@ -328,7 +367,8 @@ library BarrageBase requires TimerUtils,Table, Tool{
 		
 	}
 
-	function onInit(){
+	function onInit()
+	{
 		//GameRect = Rect(-1344,-192,-160,1472);
 		GameRect = GetPlayableMapRect();
 	}
