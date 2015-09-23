@@ -1,7 +1,8 @@
 
 
 //! zinc
-library BehaviorDemo requires BarrageBase{
+library BehaviorDemo requires BarrageBase
+{
 
 	real BehaviorFuncAddSpeed = 10;
 	public function AddSpeed(Barrage b)
@@ -30,7 +31,8 @@ library BehaviorDemo requires BarrageBase{
 
 
 
-library BarrageTest requires BehaviorDemo,BarrageBase{
+library BarrageTest requires BehaviorDemo,BarrageBase
+{
 
 	integer OnTimerIndex =0;
 	function OnTimer()
@@ -86,7 +88,8 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 
 
 	
-	function tCreateBarrage(BarrageUtils bu){
+	function tCreateBarrage(BarrageUtils bu)
+	{
 		timer t;
 		t = NewTimer();
 		SetTimerData(t,bu);
@@ -95,7 +98,8 @@ library BarrageTest requires BehaviorDemo,BarrageBase{
 		t=null;
 	}
 
-	function onInit() {	
+	function onInit()
+	{	
 		Behavior b1,b2;
 		BarrageUtils bu;
 		BarrageManager bm;
